@@ -1,2 +1,0 @@
-arsenic==21.8
-pandas==2.0.1
