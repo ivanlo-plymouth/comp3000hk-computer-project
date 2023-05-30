@@ -4,6 +4,7 @@ import os
 import uuid
 import pandas as pd
 import json
+import shutil
 from datetime import datetime
 from flask import Flask, request
 from flask_cors import CORS, cross_origin
@@ -28,11 +29,18 @@ with open('max_length.json', 'r') as f:
     max_length = json.load(f)['max_length']
 
 @app.route('/predict-text', methods=['POST'])
-@cross_origin()
+@cross_origin(origin='localhost', headers=['Content-Type', 'Authorization'])
 def predict_text():
     text = request.json['text']
+    # Tokenize and pad the text
+    sequences = tokenizer.texts_to_sequences([text])
+    data = pad_sequences(sequences, maxlen=max_length)
+    # Make the prediction with text_model
+    predictions = text_model.predict(data)
+    predicted_class = (predictions > 0.5).astype("int32")
+
     # Save the text submission
-    df = pd.DataFrame({'body': [text], 'label': [predicted_class]})
+    df = pd.DataFrame({'body': [text], 'label': [predicted_class[0][0]]})
     # Create a new directory
     date_dir = datetime.now().strftime('%Y-%m-%d')
     os.makedirs(f'text/{date_dir}', exist_ok=True)
@@ -41,16 +49,11 @@ def predict_text():
     else:
         df.to_csv(f'text/{date_dir}/submissions.csv', mode='a', header=False, index=False)
 
-    # Tokenize and pad the text
-    sequences = tokenizer.texts_to_sequences([text])
-    data = pad_sequences(sequences, maxlen=max_length)
-    # Make the prediction with text_model
-    predictions = text_model.predict(data)
-    predicted_class = (predictions > 0.5).astype("int32")
     return {"result": "spam" if predicted_class[0] == 1 else "ham"}
 
+
 @app.route('/predict-image', methods=['POST'])
-@cross_origin()
+@cross_origin(origin='localhost', headers=['Content-Type', 'Authorization'])
 def predict_image():
     file = request.files['file']
     # Generate a unique filename
@@ -65,11 +68,13 @@ def predict_image():
     x = preprocess_input(x)
     # Make the prediction with image_model
     predictions = image_model.predict(x)
-    predicted_class = "spam" if (predictions > 0.5)[0] else "ham"
+    predicted_class = "spam" if (predictions > 0.7)[0] else "ham"
     # Save the image in the respective directory
     date_dir = datetime.now().strftime('%Y-%m-%d')
-    os.makedirs(f'images/{date_dir}/{predicted_class}', exist_ok=True)
-    file.save(f'images/{date_dir}/{predicted_class}/{filename}')
+    target_dir = f'images/{date_dir}/{predicted_class}'
+    os.makedirs(target_dir, exist_ok=True)
+    # Move the image to the target directory
+    shutil.move(temp_image_path, os.path.join(target_dir, filename))
     return {"result": predicted_class}
 
 
