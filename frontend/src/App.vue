@@ -55,7 +55,7 @@
 </template>
 
 <script>
-// import axios from 'axios'; // Import the axios library here
+import axios from 'axios'; // Import the axios library here
 
 export default {
   data() {
@@ -64,7 +64,7 @@ export default {
       tabNames: ['Text Classification', 'Image Classification'],
       selectedImage: null,
       textInput: '', // Added data property for the text input
-      apiEndpoint: 'https://localhost:5000',
+      apiEndpoint: 'http://127.0.0.1:5000',
       result: '', // Store the result received from the API
     };
   },
@@ -120,19 +120,21 @@ export default {
         return;
       }
 
-      // Simulate a response from the backend
-      setTimeout(() => {
-        this.result = `Text submitted: ${trimmedText}`;
-      }, 1000);
+      // // Simulate a response from the backend before connect the API
+      // setTimeout(() => {
+      //   this.result = `Text submitted: ${trimmedText}`;
+      // }, 1000);
 
-      // axios.post(this.apiEndpoint, textData)
-      //   .then(response => {
-      //     this.result = `The predict result is: ${response.data}`; // Update the result with the API response
-      //   })
-      //   .catch(error => {
-      //     console.error(error);
-      //   });
+    // Call the text prediction API
+    axios.post(`${this.apiEndpoint}/predict-text`, { text: this.textInput })
+      .then(response => {
+        this.result = `The predict result is: ${response.data.result}`;
+      })
+      .catch(error => {
+        console.error(error);
+      });
     },
+
     submitImage() {
       if (!this.selectedImage) {
         // No image selected
@@ -140,27 +142,31 @@ export default {
         return;
       }
 
+      // // Simulate a response from the backend before connect the API
+      // setTimeout(() => {
+      //   this.result = `Image submitted: ${this.selectedImage.name}`;
+      // }, 1000);
 
-      // Simulate a response from the backend
-      setTimeout(() => {
-        this.result = `Image submitted: ${this.selectedImage.name}`;
-      }, 1000);
-
-      // axios.post(this.apiEndpoint, formData)
-      //   .then(response => {
-      //     this.result = response.data; // Update the result with the API response
-      //   })
-      //   .catch(error => {
-      //     console.error(error);
-      //   });
+    // Call the image prediction API
+    const formData = new FormData();
+    formData.append('file', this.selectedImage);
+    axios.post(`${this.apiEndpoint}/predict-image`, formData)
+      .then(response => {
+        this.result = `The predict result is: ${response.data.result}`;
+      })
+      .catch(error => {
+        console.error(error);
+      });
     },
   },
   computed: {
   resultClass() {
-    return this.result ? (this.result === 'Spam' ? 'spam' : 'non-spam') : '';
+    const prediction = this.result.split(': ')[1];
+    return this.result ? (prediction === 'spam' ? 'spam' : 'non-spam') : '';
   },
   resultIcon() {
-    return this.result ? (this.result === 'Spam' ? '🚫' : '✅') : '';
+    const prediction = this.result.split(': ')[1];
+    return this.result ? (prediction === 'spam' ? '🚫' : '✅') : '';
   },
 },
 };
@@ -168,7 +174,6 @@ export default {
 
 <style lang="scss">
 $azure-blue: #007bff;
-// $pink: #D07FAF;
 $cyan-blue: #75B8FF;
 
 body {
@@ -180,7 +185,6 @@ body {
 
 .website-title {
   background-color: $azure-blue;
-  // background-image: linear-gradient(30deg, $azure-blue, $cyan-blue);
   text-align: center;
   color: white;
   font-size: 32px;
@@ -191,9 +195,7 @@ body {
 
 header {
   background-color: $azure-blue;
-  // background-image: linear-gradient(30deg, $azure-blue, $cyan-blue);
   height: 12.5vh;
-  // min-height: 180px;
   width: 100%;
   display: flex;
   align-items: flex-end;
@@ -361,7 +363,6 @@ article {
   align-items: center;
   position: relative; /* Added positioning for result */
 
-
     .drag-zone {
       width: 70%;
       height: 200px;
@@ -414,7 +415,6 @@ article {
         font-size: 16px;
         font-family: 'PT Sans', sans-serif;
       }
-
       
     }
   }
@@ -448,6 +448,4 @@ article {
 .result-text {
   text-transform: uppercase;
 }
-
-
 </style>
