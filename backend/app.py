@@ -14,7 +14,7 @@ from tensorflow.keras.preprocessing.sequence import pad_sequences
 from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, origins=["*"])
 
 # Load the trained models
 text_model = load_model('text_classifier_model.h5')
@@ -28,8 +28,8 @@ with open('tokenizer.pickle', 'rb') as handle:
 with open('max_length.json', 'r') as f:
     max_length = json.load(f)['max_length']
 
-@app.route('/predict-text', methods=['POST'])
-@cross_origin(origin='localhost', headers=['Content-Type', 'Authorization'])
+@app.route('/api/predict-text', methods=['POST'])
+@cross_origin()
 def predict_text():
     text = request.json['text']
     # Tokenize and pad the text
@@ -52,8 +52,8 @@ def predict_text():
     return {"result": "spam" if predicted_class[0] == 1 else "ham"}
 
 
-@app.route('/predict-image', methods=['POST'])
-@cross_origin(origin='localhost', headers=['Content-Type', 'Authorization'])
+@app.route('/api/predict-image', methods=['POST'])
+@cross_origin()
 def predict_image():
     file = request.files['file']
     # Generate a unique filename
@@ -79,4 +79,4 @@ def predict_image():
 
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", port="5000", debug=True)
+    app.run(host="0.0.0.0", port="5000")
