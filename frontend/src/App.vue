@@ -51,6 +51,9 @@
         </div>
       </div>
     </article>
+    <footer class="footer">
+      <span>By submitting data above, you are agreeing to our Terms of Service and Privacy Policy, and to the sharing of your Sample submission with the security community. Please do not submit any personal information</span>
+    </footer>
   </div>
 </template>
 
@@ -181,6 +184,11 @@ body {
   padding: 0;
   font-family: 'PT Sans', sans-serif;
   background-color: var(--azure-blue);
+}
+
+footer {
+  text-align: center;
+  padding: 16px 240px;
 }
 
 .website-title {
