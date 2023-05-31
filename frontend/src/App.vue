@@ -188,7 +188,7 @@ body {
 
 footer {
   text-align: center;
-  padding: 16px 240px;
+  padding: 52px 240px;
 }
 
 .website-title {
